@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weirdoe — Ask The Weird Stuff</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #CC0F33; --red2: #E8455A;
+    --green: #00C060; --green2: #4DDD30;
+    --purple: #AA00DD; --purple2: #CC66EE;
+    --yellow: #F0C800;
+    --bg: #1a0a2e; --bg2: #220d3a;
+    --surface: #2d1050; --surface2: #3a1666;
+    --dark: #0d0018;
+    --text: #f5eeff; --text-muted: #c0a0e0;
+    --border: #4a1a80;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh; display: flex; flex-direction: column;
+    overflow-x: hidden; position: relative;
+  }
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image:
+      radial-gradient(circle at 10% 10%, rgba(204,15,51,0.2) 0%, transparent 40%),
+      radial-gradient(circle at 90% 8%, rgba(170,0,221,0.22) 0%, transparent 38%),
+      radial-gradient(circle at 50% 92%, rgba(0,192,96,0.14) 0%, transparent 38%),
+      radial-gradient(circle at 78% 55%, rgba(240,200,0,0.12) 0%, transparent 30%);
+  }
+  .blob { position:fixed; border-radius:50%; filter:blur(70px); opacity:0.28; pointer-events:none; z-index:0; animation:blobFloat 10s ease-in-out infinite alternate; }
+  .blob1 { width:340px; height:340px; background:var(--red); top:-100px; left:-100px; }
+  .blob2 { width:300px; height:300px; background:var(--purple); top:18%; right:-80px; animation-delay:-3s; }
+  .blob3 { width:280px; height:280px; background:var(--green); bottom:8%; left:5%; animation-delay:-6s; }
+  .blob4 { width:220px; height:220px; background:var(--yellow); bottom:28%; right:10%; animation-delay:-2s; }
+  @keyframes blobFloat { from { transform:translate(0,0) scale(1); } to { transform:translate(28px,18px) scale(1.07); } }
+
+  /* ── Header ── */
+  header {
+    position:relative; z-index:20;
+    padding:16px 28px;
+    background:var(--red);
+    display:flex; align-items:center; gap:14px;
+    border-bottom:5px solid var(--dark);
+    box-shadow:0 6px 0 var(--dark);
+  }
+  .logo-svg-wrap {
+    width:54px; height:54px; flex-shrink:0;
+    transform:rotate(-4deg);
+    filter:drop-shadow(3px 3px 0 var(--dark));
+    animation:logoWobble 4s ease-in-out infinite;
+  }
+  @keyframes logoWobble {
+    0%,100% { transform:rotate(-4deg) scale(1); }
+    30% { transform:rotate(5deg) scale(1.06); }
+    60% { transform:rotate(-2deg) scale(0.97); }
+  }
+  .header-title { font-family:'Fredoka One',cursive; font-size:3rem; color:var(--yellow); letter-spacing:2px; line-height:1; text-shadow:3px 3px 0 var(--dark); }
+  .header-sub { font-size:0.7rem; font-weight:800; color:rgba(255,255,255,0.88); letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+
+  .header-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+
+  /* Y-AI button */
+  .yai-btn {
+    font-family:'Fredoka One',cursive;
+    font-size:1rem; letter-spacing:1px;
+    background:var(--yellow); color:var(--dark);
+    border:3px solid var(--dark); border-radius:12px;
+    padding:8px 18px; cursor:pointer;
+    box-shadow:3px 3px 0 var(--dark);
+    transition:all 0.15s; white-space:nowrap;
+  }
+  .yai-btn:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--dark); background:#ffe833; }
+  .yai-btn:active { transform:translate(1px,1px); box-shadow:1px 1px 0 var(--dark); }
+
+  .status-pill {
+    display:flex; align-items:center; gap:8px;
+    background:var(--green); border:3px solid var(--dark); border-radius:100px;
+    padding:7px 14px; font-size:0.64rem; font-weight:800; letter-spacing:1.5px;
+    color:var(--dark); text-transform:uppercase; box-shadow:2px 2px 0 var(--dark);
+    white-space:nowrap;
+  }
+  .status-dot { width:8px; height:8px; background:var(--dark); border-radius:50%; animation:blink 1.5s ease-in-out infinite; }
+  @keyframes blink { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.3; transform:scale(0.7); } }
+
+  /* ── Modal overlay ── */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; z-index:100;
+    background:rgba(10,0,20,0.82); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-overlay.open { display:flex; animation:fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+  .modal {
+    background:var(--surface); border:4px solid var(--purple);
+    border-radius:24px; padding:36px 32px 32px;
+    max-width:520px; width:100%;
+    box-shadow:8px 8px 0 var(--dark);
+    position:relative;
+    animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+
+  .modal-close {
+    position:absolute; top:14px; right:16px;
+    background:var(--red2); border:3px solid var(--dark); border-radius:10px;
+    width:36px; height:36px; cursor:pointer; font-size:1.1rem; font-weight:800;
+    color:white; display:flex; align-items:center; justify-content:center;
+    box-shadow:2px 2px 0 var(--dark); transition:all 0.12s;
+  }
+  .modal-close:hover { transform:translate(-1px,-1px); box-shadow:3px 3px 0 var(--dark); }
+
+  .modal h2 {
+    font-family:'Fredoka One',cursive; font-size:1.6rem; color:var(--yellow);
+    text-shadow:2px 2px 0 var(--dark); margin-bottom:24px; padding-right:30px;
+    line-height:1.3;
+  }
+
+  .site-links { display:flex; flex-direction:column; gap:16px; }
+
+  .site-card {
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface2); border:3px solid var(--border);
+    border-radius:16px; padding:14px 18px;
+    text-decoration:none; color:var(--text);
+    transition:all 0.15s; box-shadow:3px 3px 0 var(--dark);
+    position:relative;
+  }
+  .site-card:hover { transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--dark); border-color:var(--purple2); }
+  .site-card:active { transform:translate(1px,1px); box-shadow:1px 1px 0 var(--dark); }
+
+  .site-emoji { font-size:1.8rem; flex-shrink:0; }
+
+  .site-info { flex:1; min-width:0; }
+  .site-name { font-family:'Fredoka One',cursive; font-size:1rem; color:var(--purple2); margin-bottom:2px; }
+  .site-url { font-size:0.65rem; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  /* Most Popular ring */
+  .most-popular-wrap { position:relative; }
+  .most-popular-wrap .site-card { border-color:var(--yellow); box-shadow:3px 3px 0 var(--yellow); }
+  .most-popular-wrap .site-card:hover { border-color:var(--yellow); box-shadow:5px 5px 0 var(--yellow); }
+
+  .popular-ring {
+    position:absolute; top:-20px; left:50%; transform:translateX(-50%);
+    background:var(--yellow); color:var(--dark);
+    border:2px solid var(--dark); border-radius:100px;
+    padding:3px 12px; font-size:0.6rem; font-weight:800;
+    letter-spacing:2px; text-transform:uppercase;
+    box-shadow:2px 2px 0 var(--dark); white-space:nowrap;
+    display:flex; align-items:center; gap:5px;
+  }
+
+  /* ── Main ── */
+  main { flex:1; display:flex; flex-direction:column; max-width:880px; width:100%; margin:0 auto; padding:0 20px; position:relative; z-index:10; }
+
+  #messages {
+    flex:1; padding:28px 0 16px; display:flex; flex-direction:column; gap:20px;
+    min-height:380px; max-height:calc(100vh - 270px); overflow-y:auto;
+    scrollbar-width:thin; scrollbar-color:var(--purple) var(--bg);
+  }
+  #messages::-webkit-scrollbar { width:6px; }
+  #messages::-webkit-scrollbar-track { background:transparent; }
+  #messages::-webkit-scrollbar-thumb { background:var(--purple); border-radius:3px; }
+
+  /* ── Welcome ── */
+  .welcome { text-align:center; padding:36px 20px 20px; animation:popIn2 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+  @keyframes popIn2 { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+
+  .welcome-logo {
+    width:110px; height:110px; margin:0 auto 20px; display:block;
+    animation:wobble 3.5s ease-in-out infinite;
+    filter:drop-shadow(0 0 18px rgba(170,0,221,0.6));
+  }
+  @keyframes wobble {
+    0%,100% { transform:rotate(-6deg) scale(1); }
+    25% { transform:rotate(9deg) scale(1.09); }
+    50% { transform:rotate(-3deg) scale(0.96); }
+    75% { transform:rotate(7deg) scale(1.05); }
+  }
+  .welcome h2 { font-family:'Fredoka One',cursive; font-size:2.3rem; color:var(--purple2); text-shadow:2px 2px 0 var(--dark); margin-bottom:10px; }
+  .welcome p { font-size:0.88rem; font-weight:600; color:var(--text-muted); line-height:1.75; max-width:480px; margin:0 auto 28px; }
+
+  .example-chips { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; max-width:640px; margin:0 auto; }
+  .chip { padding:9px 16px; font-size:0.72rem; font-weight:800; font-family:'Nunito',sans-serif; border-radius:100px; border:3px solid var(--dark); cursor:pointer; transition:all 0.15s; box-shadow:3px 3px 0 var(--dark); letter-spacing:0.3px; }
+  .chip:nth-child(1) { background:var(--red2); color:white; }
+  .chip:nth-child(2) { background:var(--purple2); color:var(--dark); }
+  .chip:nth-child(3) { background:var(--green2); color:var(--dark); }
+  .chip:nth-child(4) { background:var(--yellow); color:var(--dark); }
+  .chip:nth-child(5) { background:var(--green); color:var(--dark); }
+  .chip:nth-child(6) { background:var(--red); color:white; }
+  .chip:hover { transform:translate(-2px,-3px); box-shadow:5px 5px 0 var(--dark); }
+  .chip:active { transform:translate(1px,1px); box-shadow:1px 1px 0 var(--dark); }
+
+  /* ── Messages ── */
+  .msg { display:flex; gap:12px; animation:slideIn 0.35s cubic-bezier(0.34,1.4,0.64,1) both; }
+  @keyframes slideIn { from { opacity:0; transform:translateY(20px) scale(0.95); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .msg.user { flex-direction:row-reverse; }
+
+  .avatar { width:42px; height:42px; border-radius:12px; border:3px solid var(--dark); flex-shrink:0; display:flex; align-items:center; justify-content:center; box-shadow:2px 2px 0 var(--dark); overflow:hidden; }
+  .avatar.bot { background:var(--surface2); }
+  .avatar.user-av { background:var(--green); font-family:'Fredoka One',cursive; font-size:0.82rem; color:var(--dark); }
+
+  .bubble { max-width:70%; padding:14px 18px; border-radius:20px; border:3px solid var(--dark); font-size:0.87rem; font-weight:600; line-height:1.72; box-shadow:4px 4px 0 var(--dark); }
+  .msg.bot .bubble { background:var(--surface); border-radius:4px 20px 20px 20px; color:var(--text); }
+  .msg.user .bubble { background:var(--red); color:white; border-radius:20px 4px 20px 20px; }
+
+  .typing-indicator { display:flex; gap:6px; align-items:center; padding:4px 2px; }
+  .typing-indicator span { width:10px; height:10px; border-radius:50%; animation:typingBounce 0.8s ease-in-out infinite; }
+  .typing-indicator span:nth-child(1) { background:var(--red); }
+  .typing-indicator span:nth-child(2) { background:var(--purple); animation-delay:0.15s; }
+  .typing-indicator span:nth-child(3) { background:var(--green); animation-delay:0.3s; }
+  @keyframes typingBounce { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+
+  .source-badge { display:inline-flex; align-items:center; gap:5px; margin-top:10px; background:var(--green2); border:2px solid var(--dark); border-radius:100px; padding:3px 10px; font-size:0.6rem; font-weight:800; color:var(--dark); letter-spacing:1px; text-transform:uppercase; }
+
+  /* ── Input ── */
+  .input-area { padding:16px 0 28px; }
+  .input-wrapper { display:flex; gap:10px; align-items:flex-end; background:var(--surface); border:4px solid var(--border); border-radius:22px; padding:12px 12px 12px 20px; box-shadow:5px 5px 0 var(--dark); transition:box-shadow 0.15s,transform 0.15s,border-color 0.15s; }
+  .input-wrapper:focus-within { box-shadow:6px 6px 0 var(--purple); border-color:var(--purple); transform:translate(-1px,-1px); }
+  #userInput { flex:1; background:none; border:none; outline:none; font-family:'Nunito',sans-serif; font-size:0.9rem; font-weight:700; color:var(--text); resize:none; min-height:26px; max-height:120px; line-height:1.5; caret-color:var(--purple2); }
+  #userInput::placeholder { color:var(--text-muted); font-weight:600; }
+  #sendBtn { width:46px; height:46px; border-radius:14px; border:3px solid var(--dark); cursor:pointer; background:var(--purple); display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; box-shadow:3px 3px 0 var(--dark); }
+  #sendBtn:hover:not(:disabled) { background:var(--red); transform:translate(-2px,-2px); box-shadow:5px 5px 0 var(--dark); }
+  #sendBtn:active:not(:disabled) { transform:translate(1px,1px); box-shadow:1px 1px 0 var(--dark); }
+  #sendBtn:disabled { opacity:0.4; cursor:not-allowed; }
+  #sendBtn svg { pointer-events:none; }
+
+  .input-hint { text-align:center; font-size:0.6rem; font-weight:700; color:var(--text-muted); margin-top:10px; letter-spacing:1px; text-transform:uppercase; opacity:0.7; }
+
+  .error-bubble { background:rgba(204,15,51,0.15) !important; border-color:var(--red) !important; color:#ff8099 !important; box-shadow:4px 4px 0 var(--red) !important; }
+  strong { color:var(--purple2); }
+  .msg.user .bubble strong { color:var(--yellow); }
+</style>
+</head>
+<body>
+
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+<div class="blob blob4"></div>
+
+<!-- Y-AI Modal -->
+<div class="modal-overlay" id="yaiModal" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Here are some other cool websites you should check out 😏</h2>
+    <div class="site-links">
+
+      <!-- Most Popular: Crab Coffee -->
+      <div class="most-popular-wrap">
+        <div class="popular-ring">⭐ Most Popular ⭐</div>
+        <a href="https://crabcoffee.github.io/crab-coffee/#" target="_blank" class="site-card">
+          <span class="site-emoji">🦀</span>
+          <div class="site-info">
+            <div class="site-name">Crab Coffee</div>
+            <div class="site-url">crabcoffee.github.io/crab-coffee</div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:0.5"><path d="M3 13L13 3M13 3H7M13 3V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </a>
+      </div>
+
+      <!-- FreshNest -->
+      <a href="https://hh99169-afk.github.io/FreshNest-Mobile-Market/contact.html" target="_blank" class="site-card">
+        <span class="site-emoji">🍓</span>
+        <div class="site-info">
+          <div class="site-name">FreshNest Mobile Market</div>
+          <div class="site-url">hh99169-afk.github.io/FreshNest-Mobile-Market</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:0.5"><path d="M3 13L13 3M13 3H7M13 3V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </a>
+
+      <!-- Magic Draw -->
+      <a href="http://claude.ai/public/artifacts/43e29793-b068-34cc40760023" target="_blank" class="site-card">
+        <span class="site-emoji">🖼️</span>
+        <div class="site-info">
+          <div class="site-name">Magic Draw</div>
+          <div class="site-url">claude.ai/public/artifacts/43e29793...</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:0.5"><path d="M3 13L13 3M13 3H7M13 3V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </a>
+
+      <!-- StarFinder -->
+      <a href="https://tinklesistuff.github.io/StarFinder/#about" target="_blank" class="site-card">
+        <span class="site-emoji">✨</span>
+        <div class="site-info">
+          <div class="site-name">StarFinder</div>
+          <div class="site-url">tinklesistuff.github.io/StarFinder</div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="flex-shrink:0;opacity:0.5"><path d="M3 13L13 3M13 3H7M13 3V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<header>
+  <!-- W? logo -->
+  <svg class="logo-svg-wrap" viewBox="0 0 54 54" xmlns="http://www.w3.org/2000/svg">
+    <rect x="2" y="2" width="50" height="50" rx="13" fill="#F0C800" stroke="#0d0018" stroke-width="3"/>
+    <text x="27" y="38" text-anchor="middle" font-family="Fredoka One, cursive" font-size="22" fill="#0d0018" font-weight="bold">W?</text>
+    <circle cx="10" cy="44" r="3" fill="#CC0F33" stroke="#0d0018" stroke-width="1.5"/>
+    <circle cx="44" cy="44" r="3" fill="#AA00DD" stroke="#0d0018" stroke-width="1.5"/>
+    <circle cx="10" cy="10" r="3" fill="#00C060" stroke="#0d0018" stroke-width="1.5"/>
+  </svg>
+
+  <div>
+    <div class="header-title">Weirdoe</div>
+    <div class="header-sub">Ask anything strange &amp; wonderful</div>
+  </div>
+
+  <div class="header-right">
+    <button class="yai-btn" onclick="openModal()">Y-AI</button>
+    <div class="status-pill">
+      <span class="status-dot"></span>
+      Online &amp; Weird
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="messages">
+    <div class="welcome" id="welcome">
+      <!-- Big W? logo for welcome screen -->
+      <svg class="welcome-logo" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="102" height="102" rx="28" fill="#2d1050" stroke="#0d0018" stroke-width="4"/>
+        <rect x="4" y="4" width="102" height="102" rx="28" fill="none" stroke="#AA00DD" stroke-width="2.5" stroke-dasharray="8 6"/>
+        <text x="55" y="72" text-anchor="middle" font-family="Fredoka One, cursive" font-size="46" fill="#F0C800">W?</text>
+        <circle cx="22" cy="22" r="5" fill="#CC0F33" stroke="#0d0018" stroke-width="2"/>
+        <circle cx="88" cy="22" r="5" fill="#00C060" stroke="#0d0018" stroke-width="2"/>
+        <circle cx="22" cy="88" r="5" fill="#AA00DD" stroke="#0d0018" stroke-width="2"/>
+        <circle cx="88" cy="88" r="5" fill="#E8455A" stroke="#0d0018" stroke-width="2"/>
+      </svg>
+
+      <h2>Got a Weird Question?</h2>
+      <p>Weirdoe searches the web to answer your strangest, most unhinged, gloriously bizarre questions. The weirder the better — seriously.</p>
+      <div class="example-chips">
+        <span class="chip" onclick="sendChip(this)">Why do we dream in color?</span>
+        <span class="chip" onclick="sendChip(this)">Can a mantis shrimp see colors humans can't?</span>
+        <span class="chip" onclick="sendChip(this)">What if you ate a cloud?</span>
+        <span class="chip" onclick="sendChip(this)">Why does hair stop growing after death?</span>
+        <span class="chip" onclick="sendChip(this)">Do fish get thirsty?</span>
+        <span class="chip" onclick="sendChip(this)">Could you survive on only air?</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-wrapper">
+      <textarea id="userInput" rows="1" placeholder="Type your weirdest question here…" maxlength="1000"></textarea>
+      <button id="sendBtn" onclick="sendMessage()" aria-label="Send">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 18L10 2L17 18L10 13.5L3 18Z" fill="white"/>
+        </svg>
+      </button>
+    </div>
+    <p class="input-hint">Powered by Claude + Web Search · No question too strange</p>
+  </div>
+</main>
+
+<script>
+  const messagesEl = document.getElementById('messages');
+  const inputEl = document.getElementById('userInput');
+  const sendBtn = document.getElementById('sendBtn');
+  let welcomeEl = document.getElementById('welcome');
+  let chatHistory = [];
+  let isLoading = false;
+
+  // Modal
+  function openModal() { document.getElementById('yaiModal').classList.add('open'); }
+  function closeModal() { document.getElementById('yaiModal').classList.remove('open'); }
+  function closeModalOutside(e) { if (e.target === document.getElementById('yaiModal')) closeModal(); }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // Bot avatar: small W? logo
+  const botAvatarSVG = `<svg viewBox="0 0 42 42" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
+    <rect x="1" y="1" width="40" height="40" rx="10" fill="#2d1050" stroke="#0d0018" stroke-width="2"/>
+    <text x="21" y="28" text-anchor="middle" font-family="Fredoka One, cursive" font-size="17" fill="#F0C800">W?</text>
+    <circle cx="7" cy="7" r="2.5" fill="#CC0F33"/>
+    <circle cx="35" cy="7" r="2.5" fill="#00C060"/>
+  </svg>`;
+
+  inputEl.addEventListener('input', () => {
+    inputEl.style.height = 'auto';
+    inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  });
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+
+  function sendChip(el) { inputEl.value = el.textContent; sendMessage(); }
+
+  function appendMessage(role, content, hasSearch = false) {
+    if (welcomeEl) { welcomeEl.remove(); welcomeEl = null; }
+    const msg = document.createElement('div');
+    msg.className = `msg ${role}`;
+    const avatar = document.createElement('div');
+    avatar.className = `avatar ${role === 'bot' ? 'bot' : 'user-av'}`;
+    if (role === 'bot') { avatar.innerHTML = botAvatarSVG; } else { avatar.textContent = 'YOU'; }
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    if (role === 'bot' && content === '__typing__') {
+      bubble.innerHTML = `<div class="typing-indicator"><span></span><span></span><span></span></div>`;
+      msg.id = 'typing-msg';
+    } else {
+      bubble.innerHTML = `<div>${formatText(content)}</div>`;
+      if (role === 'bot' && hasSearch) bubble.innerHTML += `<div class="source-badge">🔍 Web-searched answer</div>`;
+    }
+    msg.appendChild(avatar);
+    msg.appendChild(bubble);
+    messagesEl.appendChild(msg);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+    return msg;
+  }
+
+  function formatText(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\n\n/g, '</p><p style="margin-top:10px">')
+      .replace(/\n/g, '<br>');
+  }
+
+  async function sendMessage() {
+    const text = inputEl.value.trim();
+    if (!text || isLoading) return;
+    isLoading = true;
+    sendBtn.disabled = true;
+    inputEl.value = '';
+    inputEl.style.height = 'auto';
+    appendMessage('user', text);
+    chatHistory.push({ role: 'user', content: text });
+    const typingMsg = appendMessage('bot', '__typing__');
+    try {
+      const systemPrompt = `You are Weirdoe — a wildly enthusiastic AI that LOVES answering weird, strange, bizarre, and wonderfully unusual questions. You ALWAYS give a real, substantive answer. You have access to web search and you USE it to find accurate, current information.
+
+Your personality: You're genuinely excited by the strangeness of the world. You find real facts that are often stranger than fiction.
+
+ALWAYS format your answers like this:
+1. A punchy one-liner opener that captures the weirdness (1 sentence)
+2. The actual explanation — be thorough and accurate, using your web search results
+3. End with "🤯 Weird Bonus Fact:" and one related surprising fact
+
+Keep it fun, conversational, and informative. Use **bold** for key terms. Always search the web first.`;
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system: systemPrompt,
+          messages: chatHistory,
+          tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+        })
+      });
+      const data = await response.json();
+      typingMsg.remove();
+      if (data.error) {
+        const errMsg = appendMessage('bot', `You know, maybe there's a question TOO weird?`);
+        errMsg.querySelector('.bubble').classList.add('error-bubble');
+        chatHistory.pop();
+      } else {
+        const textContent = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n\n');
+        const usedSearch = data.content.some(b => b.type === 'tool_use' || b.type === 'tool_result');
+        const assistantText = textContent || "You know, maybe there's a question TOO weird?";
+        appendMessage('bot', assistantText, usedSearch);
+        chatHistory.push({ role: 'assistant', content: data.content });
+      }
+    } catch (err) {
+      typingMsg.remove();
+      const errMsg = appendMessage('bot', `You know, maybe there's a question TOO weird?`);
+      errMsg.querySelector('.bubble').classList.add('error-bubble');
+      chatHistory.pop();
+    }
+    isLoading = false;
+    sendBtn.disabled = false;
+    inputEl.focus();
+  }
+</script>
+</body>
+</html>
