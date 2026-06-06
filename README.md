@@ -1,1 +1,1 @@
-# weirdos
+# weirdoe
